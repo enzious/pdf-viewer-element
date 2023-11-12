@@ -9,7 +9,7 @@ import viewer from '@bundled-es-modules/pdfjs-dist/web/pdf_viewer';
 import {styles} from '../lib/styles.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc =
-  '/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.min.js';
+  '@bundled-es-modules/pdfjs-dist/build/pdf.worker.min.js';
 
 const ptToPx: number = 96.0 / 72.0;
 
