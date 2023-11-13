@@ -102,7 +102,7 @@ export class PDFViewerDisplayElement extends LitElement {
   @query('#viewer')
   private _viewerElement!: HTMLDivElement;
 
-  private _pdfViewer?: typeof viewer.PDFViewer;
+  private _pdfViewer?: viewer.PDFViewer;
 
   private _pdfDocument?: any;
 
@@ -127,7 +127,7 @@ export class PDFViewerDisplayElement extends LitElement {
       setScale = true;
       const container = this.shadowRoot!.querySelector(
         '#container'
-      ) as HTMLElement;
+      ) as HTMLDivElement;
       // When multiPage changes we must make a new viewer element.
       container.innerHTML = '<div id="viewer" class="pdfViewer"></div>';
       if (this.multiPage) {
@@ -158,7 +158,7 @@ export class PDFViewerDisplayElement extends LitElement {
     }
 
     if (changedProperties.has('page')) {
-      this._pdfViewer.scrollPageIntoView({
+      this._pdfViewer?.scrollPageIntoView({
         pageNumber: this.page,
       });
     }
@@ -168,7 +168,7 @@ export class PDFViewerDisplayElement extends LitElement {
         setScale = true;
         if (this.scale === 'cover' || this.scale === 'contain') {
           const page = await this._pdfDocument.getPage(
-            this._pdfViewer.currentPageNumber
+            this._pdfViewer?.currentPageNumber
           );
           const viewport = page.getViewport({
             scale: 1,
@@ -193,7 +193,9 @@ export class PDFViewerDisplayElement extends LitElement {
       }
       if (setScale) {
         // TODO: if the viewer is new we have to wait for "pagesinit"?
-        this._pdfViewer.currentScale = this._currentScale * this.zoom;
+        if (this._pdfViewer) {
+          this._pdfViewer.currentScale = this._currentScale * this.zoom;
+        }
       }
     }
   }
@@ -212,12 +214,12 @@ export class PDFViewerDisplayElement extends LitElement {
       this._pdfDocument = pdfDocument;
       // Document loaded, specifying document for the viewer and
       // the (optional) linkService.
-      this._pdfViewer.setDocument(pdfDocument);
+      this._pdfViewer?.setDocument(pdfDocument);
       // pdfLinkService.setDocument(pdfDocument, null);
       const metadata = await pdfDocument.getMetadata();
       console.log({metadata});
       this.documentTitle = (metadata.info as any).Title;
-      await this.requestUpdate();
+      this.requestUpdate();
       this.dispatchEvent(new Event('load'));
     } catch (e) {
       this.dispatchEvent(
