@@ -4,12 +4,9 @@
 import {LitElement, html, css, PropertyValues, CSSResultGroup} from 'lit';
 import {property, customElement, query} from 'lit/decorators.js';
 
-import pdfjs from '@bundled-es-modules/pdfjs-dist';
-import viewer from '@bundled-es-modules/pdfjs-dist/web/pdf_viewer.js';
+import pdfjs from 'pdfjs-dist';
+import { pdfViewer as viewer } from 'pdfjs-dist/webpack.mjs';
 import {styles} from '../lib/styles.js';
-
-pdfjs.GlobalWorkerOptions.workerSrc =
-  '@bundled-es-modules/pdfjs-dist/build/pdf.worker.min.js';
 
 const ptToPx: number = 96.0 / 72.0;
 
