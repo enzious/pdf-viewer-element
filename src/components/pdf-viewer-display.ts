@@ -4,9 +4,12 @@
 import {LitElement, html, css, PropertyValues, CSSResultGroup} from 'lit';
 import {property, customElement, query} from 'lit/decorators.js';
 
-import { getDocument } from 'pdfjs-dist';
-import { EventBus, PDFViewer, PDFSinglePageViewer } from 'pdfjs-dist/webpack.mjs';
+import pdfjs from 'pdfjs-dist';
+import viewer from 'pdfjs-dist/web/pdf_viewer';
 import {styles} from '../lib/styles.js';
+
+pdfjs.GlobalWorkerOptions.workerSrc =
+  '../../node_modules/pdfjs-dist/build/pdf.worker.min.js';
 
 const ptToPx: number = 96.0 / 72.0;
 
@@ -99,7 +102,7 @@ export class PDFViewerDisplayElement extends LitElement {
   @query('#viewer')
   private _viewerElement!: HTMLDivElement;
 
-  private _pdfViewer?: typeof PDFViewer;
+  private _pdfViewer?: typeof viewer.PDFViewer;
 
   private _pdfDocument?: any;
 
@@ -107,7 +110,7 @@ export class PDFViewerDisplayElement extends LitElement {
     this._onResize()
   );
 
-  private _eventBus = new EventBus();
+  private _eventBus = new viewer.EventBus();
 
   constructor() {
     super();
@@ -128,7 +131,7 @@ export class PDFViewerDisplayElement extends LitElement {
       // When multiPage changes we must make a new viewer element.
       container.innerHTML = '<div id="viewer" class="pdfViewer"></div>';
       if (this.multiPage) {
-        this._pdfViewer = new PDFViewer({
+        this._pdfViewer = new viewer.PDFViewer({
           container,
           eventBus: this._eventBus,
           viewer: this._viewerElement,
@@ -136,7 +139,7 @@ export class PDFViewerDisplayElement extends LitElement {
           // findController: pdfFindController,
         });
       } else {
-        this._pdfViewer = new PDFSinglePageViewer({
+        this._pdfViewer = new viewer.PDFSinglePageViewer({
           container,
           eventBus: this._eventBus,
           // viewer: this._viewerElement,
@@ -197,7 +200,7 @@ export class PDFViewerDisplayElement extends LitElement {
 
   private async _load() {
     try {
-      const loadingTask = getDocument({
+      const loadingTask = pdfjs.getDocument({
         url: this.src,
         // cMapUrl: CMAP_URL,
         // cMapPacked: CMAP_PACKED,
