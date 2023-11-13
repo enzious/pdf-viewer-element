@@ -5,7 +5,7 @@ import {LitElement, html, css, PropertyValues, CSSResultGroup} from 'lit';
 import {property, customElement, query} from 'lit/decorators.js';
 
 import pdfjs from '@bundled-es-modules/pdfjs-dist';
-import viewer from '@bundled-es-modules/pdfjs-dist/web/pdf_viewer';
+import viewer from '@bundled-es-modules/pdfjs-dist/web/pdf_viewer.js';
 import {styles} from '../lib/styles.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc =
