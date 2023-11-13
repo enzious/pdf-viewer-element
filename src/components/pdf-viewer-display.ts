@@ -5,7 +5,7 @@ import {LitElement, html, css, PropertyValues, CSSResultGroup} from 'lit';
 import {property, customElement, query} from 'lit/decorators.js';
 
 import { getDocument } from 'pdfjs-dist';
-import { pdfViewer as viewer } from 'pdfjs-dist/webpack.mjs';
+import { EventBus, PDFViewer, PDFSinglePageViewer } from 'pdfjs-dist/webpack.mjs';
 import {styles} from '../lib/styles.js';
 
 const ptToPx: number = 96.0 / 72.0;
@@ -99,7 +99,7 @@ export class PDFViewerDisplayElement extends LitElement {
   @query('#viewer')
   private _viewerElement!: HTMLDivElement;
 
-  private _pdfViewer?: typeof viewer.PDFViewer;
+  private _pdfViewer?: typeof PDFViewer;
 
   private _pdfDocument?: any;
 
@@ -107,7 +107,7 @@ export class PDFViewerDisplayElement extends LitElement {
     this._onResize()
   );
 
-  private _eventBus = new viewer.EventBus();
+  private _eventBus = new EventBus();
 
   constructor() {
     super();
@@ -128,7 +128,7 @@ export class PDFViewerDisplayElement extends LitElement {
       // When multiPage changes we must make a new viewer element.
       container.innerHTML = '<div id="viewer" class="pdfViewer"></div>';
       if (this.multiPage) {
-        this._pdfViewer = new viewer.PDFViewer({
+        this._pdfViewer = new PDFViewer({
           container,
           eventBus: this._eventBus,
           viewer: this._viewerElement,
@@ -136,7 +136,7 @@ export class PDFViewerDisplayElement extends LitElement {
           // findController: pdfFindController,
         });
       } else {
-        this._pdfViewer = new viewer.PDFSinglePageViewer({
+        this._pdfViewer = new PDFSinglePageViewer({
           container,
           eventBus: this._eventBus,
           // viewer: this._viewerElement,
