@@ -4,8 +4,8 @@
 import {LitElement, html, css, PropertyValues, CSSResultGroup} from 'lit';
 import {property, customElement, query} from 'lit/decorators.js';
 
-import pdfjs from 'pdfjs-dist';
-import viewer from 'pdfjs-dist/web/pdf_viewer';
+import pdfjs, { getDocument } from 'pdfjs-dist';
+import { EventBus, PDFSinglePageViewer, PDFViewer } from 'pdfjs-dist/web/pdf_viewer';
 import {styles} from '../lib/styles.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc =
@@ -102,7 +102,7 @@ export class PDFViewerDisplayElement extends LitElement {
   @query('#viewer')
   private _viewerElement!: HTMLDivElement;
 
-  private _pdfViewer?: viewer.PDFViewer;
+  private _pdfViewer?: PDFViewer;
 
   private _pdfDocument?: any;
 
@@ -110,7 +110,7 @@ export class PDFViewerDisplayElement extends LitElement {
     this._onResize()
   );
 
-  private _eventBus = new viewer.EventBus();
+  private _eventBus = new EventBus();
 
   constructor() {
     super();
@@ -131,7 +131,7 @@ export class PDFViewerDisplayElement extends LitElement {
       // When multiPage changes we must make a new viewer element.
       container.innerHTML = '<div id="viewer" class="pdfViewer"></div>';
       if (this.multiPage) {
-        this._pdfViewer = new viewer.PDFViewer({
+        this._pdfViewer = new PDFViewer({
           container,
           eventBus: this._eventBus,
           viewer: this._viewerElement,
@@ -139,7 +139,7 @@ export class PDFViewerDisplayElement extends LitElement {
           // findController: pdfFindController,
         });
       } else {
-        this._pdfViewer = new viewer.PDFSinglePageViewer({
+        this._pdfViewer = new PDFSinglePageViewer({
           container,
           eventBus: this._eventBus,
           // viewer: this._viewerElement,
@@ -202,7 +202,7 @@ export class PDFViewerDisplayElement extends LitElement {
 
   private async _load() {
     try {
-      const loadingTask = pdfjs.getDocument({
+      const loadingTask = getDocument({
         url: this.src,
         // cMapUrl: CMAP_URL,
         // cMapPacked: CMAP_PACKED,
