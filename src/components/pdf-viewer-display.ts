@@ -4,7 +4,7 @@
 import {LitElement, html, css, PropertyValues, CSSResultGroup} from 'lit';
 import {property, customElement, query} from 'lit/decorators.js';
 
-import pdfjs from 'pdfjs-dist';
+import { getDocument } from 'pdfjs-dist';
 import { pdfViewer as viewer } from 'pdfjs-dist/webpack.mjs';
 import {styles} from '../lib/styles.js';
 
@@ -197,7 +197,7 @@ export class PDFViewerDisplayElement extends LitElement {
 
   private async _load() {
     try {
-      const loadingTask = pdfjs.getDocument({
+      const loadingTask = getDocument({
         url: this.src,
         // cMapUrl: CMAP_URL,
         // cMapPacked: CMAP_PACKED,
