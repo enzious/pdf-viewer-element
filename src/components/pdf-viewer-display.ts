@@ -4,13 +4,16 @@
 import {LitElement, html, css, PropertyValues, CSSResultGroup} from 'lit';
 import {property, customElement, query} from 'lit/decorators.js';
 
-import { getDocument } from 'pdfjs-dist';
-// import * as pdfjsLib from 'pdfjs-dist/web/pdf_viewer';
-import { EventBus, PDFSinglePageViewer, PDFViewer } from 'pdfjs-dist/web/pdf_viewer';
+// import { getDocument } from 'pdfjs-dist';
+import * as pdfjsLib from 'pdfjs-dist';
+globalThis.pdfjsLib = pdfjsLib;
+// import { EventBus, PDFSinglePageViewer, PDFViewer } from 'pdfjs-dist/web/pdf_viewer.mjs';
+import type { PDFViewer as PDFViewerType } from 'pdfjs-dist/web/pdf_viewer';
+const { EventBus, PDFSinglePageViewer, PDFViewer } = await import( "pdfjs-dist/web/pdf_viewer.mjs");
 import {styles} from '../lib/styles.js';
 
-// pdfjsLib.GlobalWorkerOptions.workerSrc =
-//   '../../node_modules/pdfjs-dist/build/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  '../../node_modules/pdfjs-dist/build/pdf.worker.min.js';
 
 const ptToPx: number = 96.0 / 72.0;
 
@@ -65,7 +68,7 @@ export class PDFViewerDisplayElement extends LitElement {
    * Total page count of the current document.
    */
   get pageCount() {
-    return this._pdfViewer?.pagesCount;
+    return this._viewer?.pagesCount;
   }
 
   /**
@@ -103,9 +106,9 @@ export class PDFViewerDisplayElement extends LitElement {
   @query('#viewer')
   private _viewerElement!: HTMLDivElement;
 
-  private _pdfViewer?: PDFViewer;
+  private _viewer?: PDFViewerType;
 
-  private _pdfDocument?: any;
+  private _document?: any;
 
   private _resizeObserver: ResizeObserver = new ResizeObserver(() =>
     this._onResize()
@@ -123,6 +126,7 @@ export class PDFViewerDisplayElement extends LitElement {
   }
 
   async updated(changedProperties: PropertyValues) {
+    console.log('quack');
     let setScale = false;
     if (changedProperties.has('multiPage')) {
       setScale = true;
@@ -130,26 +134,29 @@ export class PDFViewerDisplayElement extends LitElement {
         '#container'
       ) as HTMLDivElement;
       // When multiPage changes we must make a new viewer element.
-      container.innerHTML = '<div id="viewer" class="pdfViewer"></div>';
+      container.innerHTML = '<div id="viewer" class="viewer"></div>';
+      console.log('pdfviewer', PDFViewer);
+      console.log('container', container);
       if (this.multiPage) {
-        this._pdfViewer = new PDFViewer({
+        this._viewer = new PDFViewer({
           container,
           eventBus: this._eventBus,
           viewer: this._viewerElement,
-          // linkService: pdfLinkService,
-          // findController: pdfFindController,
+          // linkService: linkService,
+          // findController: findController,
         });
       } else {
-        this._pdfViewer = new PDFSinglePageViewer({
+        this._viewer = new PDFSinglePageViewer({
           container,
           eventBus: this._eventBus,
           // viewer: this._viewerElement,
-          // linkService: pdfLinkService,
-          // findController: pdfFindController,
+          // linkService: linkService,
+          // findController: findController,
         });
       }
-      if (this._pdfDocument) {
-        this._pdfViewer.setDocument(this._pdfDocument);
+      if (this._document) {
+        console.log('test', this._viewer, this._document);
+        this._viewer?.setDocument(this._document);
       }
       this.requestUpdate();
     }
@@ -159,17 +166,17 @@ export class PDFViewerDisplayElement extends LitElement {
     }
 
     if (changedProperties.has('page')) {
-      this._pdfViewer?.scrollPageIntoView({
+      this._viewer?.scrollPageIntoView({
         pageNumber: this.page,
       });
     }
 
-    if (this._pdfDocument !== undefined) {
+    if (this._document !== undefined) {
       if (this._currentScale === undefined || changedProperties.has('scale')) {
         setScale = true;
         if (this.scale === 'cover' || this.scale === 'contain') {
-          const page = await this._pdfDocument.getPage(
-            this._pdfViewer?.currentPageNumber
+          const page = await this._document.getPage(
+            this._viewer?.currentPageNumber
           );
           const viewport = page.getViewport({
             scale: 1,
@@ -194,8 +201,8 @@ export class PDFViewerDisplayElement extends LitElement {
       }
       if (setScale) {
         // TODO: if the viewer is new we have to wait for "pagesinit"?
-        if (this._pdfViewer) {
-          this._pdfViewer.currentScale = this._currentScale * this.zoom;
+        if (this._viewer) {
+          this._viewer.currentScale = this._currentScale * this.zoom;
         }
       }
     }
@@ -203,26 +210,27 @@ export class PDFViewerDisplayElement extends LitElement {
 
   private async _load() {
     try {
-      const loadingTask = getDocument({
+      const loadingTask = pdfjsLib.getDocument({
         url: this.src,
         // cMapUrl: CMAP_URL,
         // cMapPacked: CMAP_PACKED,
       });
-      const pdfDocument = await loadingTask.promise;
-      if (this._pdfDocument) {
-        this._pdfDocument.destroy();
+      const document = await loadingTask.promise;
+      if (this._document) {
+        this._document.destroy();
       }
-      this._pdfDocument = pdfDocument;
+      this._document = document;
       // Document loaded, specifying document for the viewer and
       // the (optional) linkService.
-      this._pdfViewer?.setDocument(pdfDocument);
-      // pdfLinkService.setDocument(pdfDocument, null);
-      const metadata = await pdfDocument.getMetadata();
+      this._viewer?.setDocument(document);
+      // linkService.setDocument(document, null);
+      const metadata = await document.getMetadata();
       console.log({metadata});
       this.documentTitle = (metadata.info as any).Title;
       this.requestUpdate();
       this.dispatchEvent(new Event('load'));
     } catch (e) {
+      console.log('e', e);
       this.dispatchEvent(
         new ErrorEvent('error', {
           error: e,
